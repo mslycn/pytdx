@@ -1,3 +1,88 @@
+
+https://github.com/rainx/pytdx/issues/133
+
+http://down.tdx.com.cn:8001/fin/gpcw20160930.zip
+数据解析
+~~~
+004757B3  |.  8D5424 20     ||lea     edx, dword ptr [esp+0x20]
+004757B7  |.  51            ||push    ecx
+004757B8  |.  57            ||push    edi
+004757B9  |.  68 4023A600   ||push    00A62340                                   ;  C:\Program Files\tdx\vipdoc\
+004757BE  |.  68 F8968B00   ||push    008B96F8                                   ;  %scw\gpcw%04d%04d.dat
+004757C3  |.  52            ||push    edx
+004757C4  |.  C74424 3C 000>||mov     dword ptr [esp+0x3C], 0x0
+004757CC  |.  E8 ED3B3B00   ||call    <jmp.&MFC42.#CString::Format_2818>
+004757D1  |.  83C4 14       ||add     esp, 0x14
+004757D4  |.  8D4C24 38     ||lea     ecx, dword ptr [esp+0x38]
+004757D8  |.  E8 673D3B00   ||call    <jmp.&MFC42.#CFile::CFile_354>
+004757DD  |.  8B4424 20     ||mov     eax, dword ptr [esp+0x20]
+004757E1  |.  6A 00         ||push    0x0
+004757E3  |.  6A 40         ||push    0x40
+004757E5  |.  50            ||push    eax
+004757E6  |.  8D4C24 44     ||lea     ecx, dword ptr [esp+0x44]
+004757EA  |.  C64424 70 01  ||mov     byte ptr [esp+0x70], 0x1
+004757EF  |.  E8 443D3B00   ||call    <jmp.&MFC42.#CFile::Open_5186>             ;  打开财报文件
+004757F4  |.  85C0          ||test    eax, eax
+004757F6  |.  0F84 50010000 ||je      0047594C
+004757FC  |.  8D4C24 48     ||lea     ecx, dword ptr [esp+0x48]
+00475800  |.  6A 14         ||push    0x14
+00475802  |.  51            ||push    ecx
+00475803  |.  8D4C24 40     ||lea     ecx, dword ptr [esp+0x40]
+00475807  |.  E8 263D3B00   ||call    <jmp.&MFC42.#CFile::Read_5442>             ;  读取文件
+0047580C  |.  8B4424 4E     ||mov     eax, dword ptr [esp+0x4E]
+00475810  |.  85C0          ||test    eax, eax
+00475812  |.  0F8E 2B010000 ||jle     00475943
+00475818  |.  8D1480        ||lea     edx, dword ptr [eax+eax*4]
+0047581B  |.  8D0450        ||lea     eax, dword ptr [eax+edx*2]
+0047581E  |.  50            ||push    eax
+0047581F  |.  E8 CC393B00   ||call    <jmp.&MFC42.#operator new_823>             ;  申请2b66大小的缓存
+00475824  |.  8BF8          ||mov     edi, eax                                   ;  12B443C0
+00475826  |.  8B4424 52     ||mov     eax, dword ptr [esp+0x52]
+0047582A  |.  83C4 04       ||add     esp, 0x4
+0047582D  |.  897C24 14     ||mov     dword ptr [esp+0x14], edi
+00475831  |.  8D0C80        ||lea     ecx, dword ptr [eax+eax*4]
+00475834  |.  8D1448        ||lea     edx, dword ptr [eax+ecx*2]
+00475837  |.  8D4C24 38     ||lea     ecx, dword ptr [esp+0x38]
+0047583B  |.  52            ||push    edx
+0047583C  |.  57            ||push    edi
+0047583D  |.  E8 F03C3B00   ||call    <jmp.&MFC42.#CFile::Read_5442>             ;  从财宝中读取2B66大小的内容，存放到刚才申请的缓存中
+00475842  |.  8B4424 4E     ||mov     eax, dword ptr [esp+0x4E]
+00475846  |.  33F6          ||xor     esi, esi
+00475848  |.  85C0          ||test    eax, eax
+0047584A  |.  0F8E E2000000 ||jle     00475932
+00475850  |>  57            ||/push    edi                                       ; /s
+00475851  |.  C647 06 00    |||mov     byte ptr [edi+0x6], 0x0                   ; |在股票代码末尾设置\0防止字符串解析错误
+00475855  |.  FF15 98638500 |||call    dword ptr [<&MSVCRT.atol>]                ; \将股票代码转long类型
+0047585B  |.  8B4C24 78     |||mov     ecx, dword ptr [esp+0x78]
+0047585F  |.  83C4 04       |||add     esp, 0x4
+00475862  |.  3BC1          |||cmp     eax, ecx
+00475864  |.  74 11         |||je      short 00475877                            ;  查找指定的股票
+00475866  |.  8B4424 4E     |||mov     eax, dword ptr [esp+0x4E]
+0047586A  |.  46            |||inc     esi                                       ;  累加器统计目标股票代码的偏移数量
+0047586B  |.  83C7 0B       |||add     edi, 0xB
+0047586E  |.  3BF0          |||cmp     esi, eax
+00475870  |.^ 7C DE         ||\jl      short 00475850
+00475872  |.  E9 B7000000   ||jmp     0047592E                                   ;  如果没找到就跳走，如果找到则获取其财报信息
+00475877  |>  8B4C24 14     ||mov     ecx, dword ptr [esp+0x14]                  ;  得到STOCK_ITEM的基地址
+0047587B  |.  8D04B6        ||lea     eax, dword ptr [esi+esi*4]                 ;  指定股票的偏移+偏移*4
+0047587E  |.  03CE          ||add     ecx, esi
+00475880  |.  6A 00         ||push    0x0
+00475882  |.  8B5441 07     ||mov     edx, dword ptr [ecx+eax*2+0x7]             ;  得到每只股票代码的下一个成员(offset)
+00475886  |.  8B4424 28     ||mov     eax, dword ptr [esp+0x28]                  ;  得到要获取元素的偏移。
+0047588A  |.  8D4C82 FC     ||lea     ecx, dword ptr [edx+eax*4-0x4]
+0047588E  |.  51            ||push    ecx
+0047588F  |.  8D4C24 40     ||lea     ecx, dword ptr [esp+0x40]
+00475893  |.  E8 C6433B00   ||call    <jmp.&MFC42.#CFile::Seek_5773>             ;  计算其财报信息每股净收益的偏移
+00475898  |.  8D5424 28     ||lea     edx, dword ptr [esp+0x28]
+0047589C  |.  6A 04         ||push    0x4
+0047589E  |.  52            ||push    edx
+0047589F  |.  8D4C24 40     ||lea     ecx, dword ptr [esp+0x40]
+004758A3  |.  E8 8A3C3B00   ||call    <jmp.&MFC42.#CFile::Read_5442>             ;  得到需要的元素
+004758A8  |.  8B83 F8140000 ||mov     eax, dword ptr [ebx+0x14F8]
+
+~~~
+
+
 Python通达信数据接口
 ========
 
